@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PlaceDetailsActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="Place Details"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:id="@+id/detailscreentitle"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/productnamelabel"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/detailscreentitle"
+        android:layout_marginTop="30dp"
+        android:text="Place Title:"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/placenamevalue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/detailscreentitle"
+        android:layout_marginTop="30dp"
+        android:layout_toRightOf="@id/productnamelabel"
+        android:paddingStart="5dp"
+        android:textColor="@color/black" />
+
+
+    <TextView
+        android:id="@+id/addresslabel"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/productnamelabel"
+        android:layout_marginTop="10dp"
+        android:text="Address:"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/addressvalue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/placenamevalue"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/addresslabel"
+        android:paddingStart="5dp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/distancevalue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/addressvalue"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/distancelabel"
+        android:paddingStart="5dp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/distancelabel"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/addressvalue"
+        android:layout_marginTop="10dp"
+        android:text="Distance:"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/durationlabel"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/distancelabel"
+        android:layout_marginTop="10dp"
+        android:text="Travel duration:"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/durationvalue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/distancevalue"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/durationlabel"
+        android:paddingStart="5dp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Location"
+        android:layout_below="@id/durationlabel"
+        android:textSize="15sp"
+        android:id="@+id/locationlabel"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:paddingStart="5dp"
+        android:layout_marginTop="30dp"/>
+
+    <fragment
+        android:id="@+id/maps"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="450dp"
+        android:layout_below="@id/locationlabel"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="5dp" />
+
+</RelativeLayout>
