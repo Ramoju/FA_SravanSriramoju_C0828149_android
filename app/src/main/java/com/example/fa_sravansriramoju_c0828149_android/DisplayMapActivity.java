@@ -56,7 +56,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback {
+public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback, GoogleMap.OnMarkerDragListener {
 
     private GoogleMap mMap;
     private ActivityDisplayMapBinding binding;
@@ -67,9 +67,11 @@ public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCa
     LocationCallback locationCallback;
     Geocoder geocoder;
     Place place;
+    Place placetoEdit;
     DBHelper db;
     List<Address> address;
     String placeAddress;
+    List<Address> editPlaceAddress;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
 
@@ -80,24 +82,28 @@ public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCa
         binding = ActivityDisplayMapBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         place = new Place();
+        placetoEdit = new Place();
         db = new DBHelper(this);
         geocoder = new Geocoder(this, Locale.CANADA);
+        placetoEdit = getIntent().getParcelableExtra("placetoEdit");
         //client = LocationServices.getFusedLocationProviderClient(DisplayMapActivity.this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        getUserLocation();
-        if (!isGrantedLocationPer()) {
-            requestLocationPermission();
+            if (placetoEdit == null) {
+                getUserLocation();
+                if (!isGrantedLocationPer()) {
+                    requestLocationPermission();
 
-        } else {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
+                } else {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+                    client.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+                }
             }
-            client.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
-        }
 
     }
 
@@ -114,75 +120,79 @@ public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-            @Override
-            public void onMapLongClick(@NonNull LatLng latLng) {
-                AlertDialog.Builder alert = new AlertDialog.Builder(DisplayMapActivity.this);
-                alert.setMessage("Enter title for the selected location");
-                final EditText editext = new EditText(DisplayMapActivity.this);
-                alert.setView(editext);
+        if (placetoEdit == null) {
+            mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                @Override
+                public void onMapLongClick(@NonNull LatLng latLng) {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(DisplayMapActivity.this);
+                    alert.setMessage("Enter title for the selected location");
+                    final EditText editext = new EditText(DisplayMapActivity.this);
+                    alert.setView(editext);
 
-                alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
 
-                        if (latLng.latitude != 0) {
-                            try {
-                                address = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            if (latLng.latitude != 0) {
+                                try {
+                                    address = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                if (address != null) {
+                                    String addressLine = address.get(0).getAddressLine(0);
+                                    placeAddress = addressLine;
+                                }
                             }
-                            if (address != null) {
-                                String addressLine = address.get(0).getAddressLine(0);
-                                placeAddress = addressLine;
-                            }
+
+                            place.setTitle(editext.getText().toString());
+                            place.setLatitude(latLng.latitude);
+                            place.setLongitude(latLng.longitude);
+                            place.setVisited(0);
+                            place.setAddress(placeAddress);
+                            db.insertPlace(place);
+                            //Toast.makeText(this, "Place saved to favorites", Toast.LENGTH_SHORT).show();
+
+                            MarkerOptions options = new MarkerOptions().position(latLng)
+                                    .title(placeAddress)
+                                    .draggable(true)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                            marker = mMap.addMarker(options);
+
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(DisplayMapActivity.this);
+                            builder.setTitle("Add more favorite places");
+                            builder.setMessage("Do you want to add more favorite places?");
+                            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    // Nothing to handle, same screen stays
+                                }
+                            });
+                            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Intent intent = new Intent(DisplayMapActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+                            builder.show();
                         }
+                    });
 
-                        place.setTitle(editext.getText().toString());
-                        place.setLatitude(latLng.latitude);
-                        place.setLongitude(latLng.longitude);
-                        place.setVisited(0);
-                        place.setAddress(placeAddress);
-                        db.insertPlace(place);
-                        //Toast.makeText(this, "Place saved to favorites", Toast.LENGTH_SHORT).show();
+                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            return;
+                        }
+                    });
 
-                        MarkerOptions options = new MarkerOptions().position(latLng)
-                                .title(placeAddress)
-                                .draggable(true)
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-                        marker = mMap.addMarker(options);
-
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(DisplayMapActivity.this);
-                        builder.setTitle("Add more favorite places");
-                        builder.setMessage("Do you want to add more favorite places?");
-                        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                // Nothing to handle, same screen stays
-                            }
-                        });
-                        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                Intent intent = new Intent(DisplayMapActivity.this, MainActivity.class);
-                                startActivity(intent);
-                            }
-                        });
-                        builder.show();
-                    }
-                });
-
-                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        return;
-                    }
-                });
-
-                alert.show();
-            }
-        });
+                    alert.show();
+                }
+            });
+        } else {
+            addEditPlaceMarker();
+        }
 
     }
 
@@ -238,7 +248,6 @@ public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCa
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     mMap.addMarker(new MarkerOptions().position(userLocation)
                             .title("Your Location")
-                            .draggable(true)
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                             .snippet("Home")
                     );
@@ -248,4 +257,47 @@ public class DisplayMapActivity extends FragmentActivity implements OnMapReadyCa
         };
     }
 
+    private void addEditPlaceMarker() {
+        LatLng editPlaceLocation = new LatLng(placetoEdit.getLatitude(), placetoEdit.getLongitude());
+        CameraPosition cameraPosition = CameraPosition.builder()
+                .target(editPlaceLocation)
+                .zoom(15)
+                .bearing(0)
+                .tilt(45)
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.addMarker(new MarkerOptions().position(editPlaceLocation)
+                .title(placetoEdit.getTitle())
+                .draggable(true)
+        );
+    }
+
+
+    @Override
+    public void onMarkerDrag(@NonNull Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDragEnd(@NonNull Marker marker) {
+        double newLatitude = marker.getPosition().latitude;
+        double newLongitude = marker.getPosition().longitude;
+        placetoEdit.setLatitude(newLatitude);
+        placetoEdit.setLongitude(newLongitude);
+
+        if (newLatitude != 0) {
+            try {
+                editPlaceAddress = geocoder.getFromLocation(newLatitude, newLongitude, 1);
+                placetoEdit.setAddress(editPlaceAddress.get(0).getAddressLine(0));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        db.updatePlace(placetoEdit.getId(), placetoEdit.getTitle(), placetoEdit.getAddress(), placetoEdit.getLatitude(), placetoEdit.getLongitude());
+    }
+
+    @Override
+    public void onMarkerDragStart(@NonNull Marker marker) {
+
+    }
 }

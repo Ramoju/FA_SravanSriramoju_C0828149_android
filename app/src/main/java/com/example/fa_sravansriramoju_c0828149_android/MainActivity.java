@@ -3,6 +3,7 @@ package com.example.fa_sravansriramoju_c0828149_android;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,8 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private DBHelper db;
     private List<Place> placesList;
     private PlacesRVAdapter adapter;
-    //ActivityResultLauncher<Place> place;
-    private static final int REQUEST_CODE = 1234;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new PlacesRVItemTouchHelper(adapter));
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
     }
 
     @Override

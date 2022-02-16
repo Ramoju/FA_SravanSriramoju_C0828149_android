@@ -12,13 +12,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fa_sravansriramoju_c0828149_android.DisplayMapActivity;
 import com.example.fa_sravansriramoju_c0828149_android.MainActivity;
 import com.example.fa_sravansriramoju_c0828149_android.Model.Place;
 import com.example.fa_sravansriramoju_c0828149_android.PlaceDetailsActivity;
 import com.example.fa_sravansriramoju_c0828149_android.R;
 import com.example.fa_sravansriramoju_c0828149_android.utilities.DBHelper;
 
-import org.w3c.dom.Text;
+
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class PlacesRVAdapter extends RecyclerView.Adapter<PlacesRVAdapter.PlaceV
     private List<Place> placesList;
     private MainActivity activity;
     private DBHelper myDB;
+    Place place;
 
     public PlacesRVAdapter(MainActivity activity, DBHelper myDB) {
         this.activity = activity;
@@ -72,6 +74,13 @@ public class PlacesRVAdapter extends RecyclerView.Adapter<PlacesRVAdapter.PlaceV
     @Override
     public int getItemCount() {
         return placesList.size();
+    }
+
+    public void editPlace(int position) {
+        Intent intent = new Intent(activity, DisplayMapActivity.class);
+        place = placesList.get(position);
+        intent.putExtra("placetoEdit", place);
+        getContext().startActivity(intent);
     }
 
     public Context getContext(){
